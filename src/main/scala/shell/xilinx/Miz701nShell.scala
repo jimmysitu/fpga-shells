@@ -44,7 +44,7 @@ class LEDMiz701nOverlay(val shell: Miz701nShell, val name: String, params: LEDOv
   extends LEDXilinxOverlay(params, packagePins = Seq("N15", "N16", "M19", "M20"))
 
 class SwitchMiz701nOverlay(val shell: Miz701nShell, val name: String, params: SwitchOverlayParams)
-  extends SwitchXilinxOverlay(params, packagePins = Seq("M14", "M15")
+  extends SwitchXilinxOverlay(params, packagePins = Seq("M14", "M15"))
 
 // NEP for JTAG
 class JTAGDebugMiz701nOverlay(val shell: Miz701nShell, val name: String, params: JTAGDebugOverlayParams)
