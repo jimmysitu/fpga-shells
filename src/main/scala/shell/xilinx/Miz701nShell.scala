@@ -29,7 +29,7 @@ class UARTMiz701nOverlay(val shell: Miz701nShell, val name: String, params: UART
 {
   shell { InModuleBody {
     val packagePinsWithPackageIOs = Seq(
-      ("T10", IOPin(io.rxd)), // pin 4 
+      ("T10", IOPin(io.rxd)), // pin 4
       ("U12", IOPin(io.txd))) // pin 6
 
     packagePinsWithPackageIOs foreach { case (pin, io) => {
