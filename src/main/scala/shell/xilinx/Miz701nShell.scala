@@ -94,6 +94,10 @@ class Miz701nShell()(implicit p: Parameters) extends Series7Shell
   override lazy val module = new LazyRawModuleImp(this) {
     val reset = IO(Input(Bool()))
     xdc.addPackagePin(IOPin(reset), "M14")  // BTN0
+    xdc.addIOStandard(reset, "LVCMOS33")
+
+    val reset_ibuf = Module(new IBUF)
+    reset_ibuf.io.I := reset
 
     val powerOnReset = PowerOnResetFPGAOnly(sys_clock.get.clock)
     sdc.addAsyncPath(Seq(powerOnReset))
