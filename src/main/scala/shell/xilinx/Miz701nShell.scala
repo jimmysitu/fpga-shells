@@ -41,10 +41,18 @@ class UARTMiz701nOverlay(val shell: Miz701nShell, val name: String, params: UART
 }
 
 class LEDMiz701nOverlay(val shell: Miz701nShell, val name: String, params: LEDOverlayParams)
-  extends LEDXilinxOverlay(params, packagePins = Seq("N15", "N16", "M19", "M20"))
+  extends LEDXilinxOverlay(params, packagePins = Seq(
+    "N15", // LD0
+    "N16", // LD1
+    "M19", // LD2
+    "M20") // LD3
+  )
 
 class SwitchMiz701nOverlay(val shell: Miz701nShell, val name: String, params: SwitchOverlayParams)
-  extends SwitchXilinxOverlay(params, packagePins = Seq("M14", "M15"))
+  extends SwitchXilinxOverlay(params, packagePins = Seq(
+    //"M14", // BTN0, reused by reset
+    "M15") // BTN1
+  )
 
 // NEP for JTAG
 class JTAGDebugMiz701nOverlay(val shell: Miz701nShell, val name: String, params: JTAGDebugOverlayParams)
@@ -85,15 +93,11 @@ class Miz701nShell()(implicit p: Parameters) extends Series7Shell
 
   override lazy val module = new LazyRawModuleImp(this) {
     val reset = IO(Input(Bool()))
-    xdc.addBoardPin(reset, "reset")
-
-    val reset_ibuf = Module(new IBUF)
-    reset_ibuf.io.I := reset
+    xdc.addPackagePin(IOPin(reset), "M14")  // BTN0
 
     val powerOnReset = PowerOnResetFPGAOnly(sys_clock.get.clock)
     sdc.addAsyncPath(Seq(powerOnReset))
 
-    pllReset :=
-      (!reset_ibuf.io.O) || powerOnReset
+    pllReset := reset || powerOnReset
   }
 }
