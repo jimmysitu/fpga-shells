@@ -85,7 +85,8 @@ class Miz701nShell()(implicit p: Parameters) extends Series7Shell
 
   override lazy val module = new LazyRawModuleImp(this) {
     val reset = IO(Input(Bool()))
-    xdc.addBoardPin(reset, "reset")
+    xdc.addPackagePin(reset, "M16") // FIXME
+    xdc.addIOStandard(reset, "LVCMOS33")
 
     val reset_ibuf = Module(new IBUF)
     reset_ibuf.io.I := reset
