@@ -16,13 +16,13 @@ import sifive.blocks.devices.uart._
 class SysClockMiz701nOverlay(val shell: Miz701nShell, val name: String, params: ClockInputOverlayParams)
   extends SingleEndedClockInputXilinxOverlay(params)
 {
-  val node = shell { ClockSourceNode(freqMHz = 100, jitterPS = 50)(ValName(name)) }
+  val node = shell { ClockSourceNode(name, freqMHz = 100, jitterPS = 50)(ValName(name)) }
 
   shell {
     InModuleBody {
       val clk: Clock = io
       shell.xdc.addPackagePin(clk, "H16")
-      shell.xdc.addIOStandard(clk, "LsCMOS33")
+      shell.xdc.addIOStandard(clk, "LVCMOS33")
     }
   }
 }
