@@ -66,6 +66,8 @@ set ipdir [file join $wrkdir ip]
 # Create an in-memory project
 create_project -part $part_fpga -force $top
 
+set_param messaging.defaultLimit 1000000
+
 # Set the board part, target language, default library, and IP directory
 # paths for the current project
 set_property -dict [list \
@@ -115,5 +117,5 @@ if {[get_filesets -quiet constrs_1] eq ""} {
 }
 
 set obj [current_fileset -constrset]
-add_files -quiet -norecurse -fileset $obj [lsort [glob -directory $constraintsdir -nocomplain {*.xdc}]]
 add_files -quiet -norecurse -fileset $obj [lsort [glob -directory $constraintsdir -nocomplain {*.tcl}]]
+add_files -quiet -norecurse -fileset $obj [lsort [glob -directory $constraintsdir -nocomplain {*.xdc}]]

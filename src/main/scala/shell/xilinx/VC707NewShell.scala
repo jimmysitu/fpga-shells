@@ -17,7 +17,7 @@ import sifive.fpgashells.devices.xilinx.xilinxvc707pciex1._
 class SysClockVC707Overlay(val shell: VC707Shell, val name: String, params: ClockInputOverlayParams)
   extends LVDSClockInputXilinxOverlay(params)
 {
-  val node = shell { ClockSourceNode(freqMHz = 200, jitterPS = 50)(ValName(name)) }
+  val node = shell { ClockSourceNode(name, freqMHz = 200, jitterPS = 50) }
 
   shell { InModuleBody {
     shell.xdc.addBoardPin(io.p, "clk_p")
@@ -106,11 +106,29 @@ class JTAGDebugVC707Overlay(val shell: VC707Shell, val name: String, params: JTA
     shell.sdc.addClock("JTCK", IOPin(io.jtag_TCK), 10)
     shell.sdc.addGroup(clocks = Seq("JTCK"))
     shell.xdc.clockDedicatedRouteFalse(IOPin(io.jtag_TCK))
+/* if old method
     val packagePinsWithPackageIOs = Seq(("R32", IOPin(io.jtag_TCK)),
                                         ("W36", IOPin(io.jtag_TMS)),
                                         ("W37", IOPin(io.jtag_TDI)),
                                         ("V40", IOPin(io.jtag_TDO)))
-
+*/
+    /*
+           #Olimex Pin  Olimex Function LCD Pin LCD Function FPGA Pin
+           #1           VREF            14      5V
+           #3           TTRST_N         1       LCD_DB7       AN40
+           #5           TTDI            2       LCD_DB6       AR39
+           #7           TTMS            3       LCD_DB5       AR38
+           #9           TTCK            4       LCD_DB4       AT42
+           #11          TRTCK           NC      NC            NC
+           #13          TTDO            9       LCD_E         AT40
+           #15          TSRST_N         10      LCD_RW        AR42
+           #2           VREF            14      5V
+           #18          GND             13      GND
+     */
+    val packagePinsWithPackageIOs = Seq(("AT42", IOPin(io.jtag_TCK)),
+                                        ("AR38", IOPin(io.jtag_TMS)),
+                                        ("AR39", IOPin(io.jtag_TDI)),
+                                        ("AT40", IOPin(io.jtag_TDO)))
     packagePinsWithPackageIOs foreach { case (pin, io) => {
       shell.xdc.addPackagePin(io, pin)
       shell.xdc.addIOStandard(io, "LVCMOS18")
@@ -125,11 +143,12 @@ class DDRVC707Overlay(val shell: VC707Shell, val name: String, params: DDROverla
 {
   val size = p(VC707DDRSize)
 
+  val sdcClockName = "userClock1"
   val migParams = XilinxVC707MIGParams(address = AddressSet.misaligned(params.baseAddress, size))
   val mig = LazyModule(new XilinxVC707MIG(migParams))
   val ioNode = BundleBridgeSource(() => mig.module.io.cloneType)
   val topIONode = shell { ioNode.makeSink() }
-  val ddrUI     = shell { ClockSourceNode(freqMHz = 200) }
+  val ddrUI     = shell { ClockSourceNode(sdcClockName, freqMHz = 200) }
   val areset    = shell { ClockSinkNode(Seq(ClockSinkParameters())) }
   areset := params.wrangler := ddrUI
 
@@ -158,10 +177,11 @@ class DDRVC707Overlay(val shell: VC707Shell, val name: String, params: DDROverla
 class PCIeVC707Overlay(val shell: VC707Shell, val name: String, params: PCIeOverlayParams)
   extends PCIeOverlay[XilinxVC707PCIeX1Pads](params)
 {
+  val sdcClockName = "axiClock"
   val pcie = LazyModule(new XilinxVC707PCIeX1)
   val ioNode = BundleBridgeSource(() => pcie.module.io.cloneType)
   val topIONode = shell { ioNode.makeSink() }
-  val axiClk    = shell { ClockSourceNode(freqMHz = 125) }
+  val axiClk    = shell { ClockSourceNode(sdcClockName, freqMHz = 125) }
   val areset    = shell { ClockSinkNode(Seq(ClockSinkParameters())) }
   areset := params.wrangler := axiClk
 
@@ -196,7 +216,7 @@ class PCIeVC707Overlay(val shell: VC707Shell, val name: String, params: PCIeOver
     shell.sdc.addClock(s"${name}_ref_clk", io.REFCLK_rxp, 100)
   } }
 
-  shell.sdc.addGroup(clocks = Seq("txoutclk", "userclk1"))
+  shell.sdc.addGroup(clocks = Seq("txoutclk", "userclk1", "axiClock"))
 }
 
 class VC707Shell()(implicit p: Parameters) extends Series7Shell
